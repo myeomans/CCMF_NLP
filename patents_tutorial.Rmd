@@ -66,7 +66,7 @@ Calculate a 1-gram feature count matrix for the review data, with no dropped wor
 ```{r}
 dfm1<-create_dfm(patents_data$patent_abstract,
                 ngrams=1,
-                min.prop=0,
+                #min.prop=0,
                 stop.words = FALSE)
 
 dim(dfm1) 
@@ -176,48 +176,48 @@ lots of the same words!
 sort(colMeans(dfm3[patents_data$cleanness=="dirty",]),decreasing=T)[1:20]
 ```
 
-What we really care about is - does the presence of a word predict cleanness?
-```{r}
-# To assess correlations, make binary class into a numeric class: 
-# convert "clean" to 1 and "dirty" to 0
-patents_data <- patents_data %>% 
-  mutate(cleanness_numeric = case_when((cleanness == "clean") ~ 1,
-                                       TRUE ~ 0))
+<!-- What we really care about is - does the presence of a word predict cleanness? -->
+<!-- ```{r} -->
+<!-- # To assess correlations, make binary class into a numeric class:  -->
+<!-- # convert "clean" to 1 and "dirty" to 0 -->
+<!-- patents_data <- patents_data %>%  -->
+<!--   mutate(cleanness_numeric = case_when((cleanness == "clean") ~ 1, -->
+<!--                                        TRUE ~ 0)) -->
 
-# A simple start - correlate each word with cleanness
-correlations<-dfm3 %>%
-  summarise_all(~round(cor(.,patents_data$cleanness_numeric),3)) %>%
-  unlist()
-```
+<!-- # A simple start - correlate each word with cleanness -->
+<!-- correlations<-dfm3 %>% -->
+<!--   summarise_all(~round(cor(.,patents_data$cleanness_numeric),3)) %>% -->
+<!--   unlist() -->
+<!-- ``` -->
 
-Ten lowest associations (dirty patents)
-```{r}
-sort(correlations)[1:10]
-```
+<!-- Ten lowest associations (dirty patents) -->
+<!-- ```{r} -->
+<!-- sort(correlations)[1:10] -->
+<!-- ``` -->
 
-Ten highest associations (clean patents)
-```{r}
-rev(sort(correlations))[1:10]
-```
+<!-- Ten highest associations (clean patents) -->
+<!-- ```{r} -->
+<!-- rev(sort(correlations))[1:10] -->
+<!-- ``` -->
 
-note - same as:
-```{r}
-sort(correlations,decreasing=TRUE)[1:10]
-```
+<!-- note - same as: -->
+<!-- ```{r} -->
+<!-- sort(correlations,decreasing=TRUE)[1:10] -->
+<!-- ``` -->
 
-Let's put this on a plot
-```{r}
-cor_set<-data.frame(correlation=correlations,
-                    frequency=colMeans(dfm3),
-                    word=colnames(dfm3)) %>%
-  # # let's group the points so we can add color
-  mutate(colour=case_when(
-    correlation>.02  ~ "clean", # positive correlations (> +.02)
-    correlation<(-.02) ~ "dirty", # negative correlations (< -.02)
-    T ~ "neutral"))               # black otherwise (i.e. if it is close to zero)
+<!-- Let's put this on a plot -->
+<!-- ```{r} -->
+<!-- cor_set<-data.frame(correlation=correlations, -->
+<!--                     frequency=colMeans(dfm3), -->
+<!--                     word=colnames(dfm3)) %>% -->
+<!--   # # let's group the points so we can add color -->
+<!--   mutate(colour=case_when( -->
+<!--     correlation>.02  ~ "clean", # positive correlations (> +.02) -->
+<!--     correlation<(-.02) ~ "dirty", # negative correlations (< -.02) -->
+<!--     T ~ "neutral"))               # black otherwise (i.e. if it is close to zero) -->
 
-head(cor_set)
-```
+<!-- head(cor_set) -->
+<!-- ``` -->
 
 <!-- Let's make a quick plot -->
 <!-- ```{r} -->
@@ -286,7 +286,8 @@ trainX<-dfm3 %>%
 
 trainY<-patents_data %>%
   slice(train_split) %>%
-  pull(cleanness_numeric)
+  pull(patent_year)
+  #pull(cleanness_numeric)
 
 testX<-dfm3 %>% 
   slice(-train_split) %>%
@@ -294,7 +295,8 @@ testX<-dfm3 %>%
 
 testY<-patents_data %>%
   slice(-train_split) %>%
-  pull(cleanness_numeric)
+  pull(patent_year)
+  # pull(cleanness_numeric)
 ```
 
 Put training data into LASSO model (note - glmnet requires a matrix)
@@ -355,7 +357,7 @@ patents_data_dfm_test<-create_dfm(patents_data_test$patent_abstract,ngrams=1) %>
 ```{r}
 patent_model <-glmnet::cv.glmnet(x=patents_data_dfm_train %>%
                                as.matrix(),
-                             y=patents_data_train$cleanness_numeric)
+                             y=as.numeric(patents_data_train$patent_year))
 
 plot(patent_model)
 ```
