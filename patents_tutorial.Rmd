@@ -19,12 +19,13 @@ output:
 install libraries (only once)
 ```{r}
 # Un-comment and run these once, if you haven't installed them before
-# install.packages("tidyverse") # useful everything
-# install.packages("ggrepel") # nice labels for plots
-# install.packages("glmnet") # supervised machine learning
-# install.packages("quanteda") # very useful text stuff
-# install.packages("textclean") # useful text stuff
-# install.packages("pROC") # accuracy function
+install.packages("tidyverse") # useful everything
+install.packages("ggrepel") # nice labels for plots
+install.packages("glmnet") # supervised machine learning
+install.packages("quanteda") # very useful text stuff
+install.packages("textclean") # useful text stuff
+install.packages("textdata") # useful text stuff
+install.packages("pROC") # accuracy function
 ```
 
 load libraries
@@ -65,9 +66,9 @@ dfm1<-create_dfm(patents_data$patent_abstract,
                 #min.prop=0,
                 stop.words = FALSE)
 
-dim(dfm1) 
+dim(dfm1) # explore dimensions of the matrix 
 ```
-More than 37k ngrams! Too many
+More than 731 ngrams
 
 most common words - obvious
 ```{r}
@@ -165,8 +166,8 @@ patents_data %>%
   round(3)
 
 ```
-For your assignment, clean is a text variable. you will have to convert to numeric for the classifier
 
+For your assignment, clean is a text variable. you will have to convert to numeric for the classifier
 ```{r}
 table(patents_data$clean)
 
@@ -179,9 +180,10 @@ dfm2<-create_dfm(patents_data$patent_abstract,ngrams=1) %>%
   convert(to="data.frame") %>%
   select(-doc_id)
 
-# Lots of words
+# let's explore the dimensions again
 dim(dfm2)
 ```
+666 unigrams..
 
 Most common words in clean and dirty patents... 
 ```{r}
@@ -269,13 +271,14 @@ and we can calculate accuracy from that
 round(100*mean(test_predict_binary==testY),3)
 ```
 
+
 We can also calculate a "confusion matrix" to identify our errors
-
-We are making lots of one error, and very little of the other. How could you fix this?
-
 ```{r}
 table(test_predict_binary,testY)
 ```
+We are making lots of one error, and very little of the other. How could you fix this?
+
+
 
 
 #######################################################
@@ -355,7 +358,7 @@ acc_ngram
 plot(acc_ngram)
 ```
 
-Find examples
+Find examples (create variables)
 ```{r}
 # store predictions in data, calculate accuracy
 patents_data_test<-patents_data_test %>%
@@ -372,7 +375,7 @@ close_other<-patents_data_test %>%
   select(patent_abstract,H,prediction, patent_title)
 ```
 
-
+let's look at these examples now
 ```{r}
 # close_electricity
 close_electricity %>%
@@ -416,7 +419,10 @@ miss_other<-patents_data_test %>%
 miss_other%>%
   slice(1:5) %>%
   pull(patent_abstract)
+```
 
+
+```{r}
 miss_other%>%
   slice(1:5) %>%
   select(A:H)
@@ -427,8 +433,10 @@ miss_other%>%
 miss_electricity%>%
   slice(1:5) %>%
   pull(patent_abstract)
+```
 
 
+```{r}
 miss_electricity%>%
   slice(1:5) %>%
   select(A:H)
